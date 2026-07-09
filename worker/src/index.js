@@ -122,8 +122,17 @@ export default {
             after: String(s.after ?? "").slice(0, 500),
             targets: String(s.targets ?? "").slice(0, 120),
           })),
-          covered: (parsed.covered ?? []).slice(0, 10).map(String),
-          not_addable: (parsed.not_addable ?? []).slice(0, 10).map(String),
+          // models sometimes return one comma-joined string; normalize to items
+          covered: (parsed.covered ?? [])
+            .flatMap((s) => String(s).split(","))
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .slice(0, 10),
+          not_addable: (parsed.not_addable ?? [])
+            .flatMap((s) => String(s).split(","))
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .slice(0, 10),
         });
       } catch (e) {
         if (attempt === 1) {

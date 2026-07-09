@@ -26,4 +26,4 @@ ALLOWED_ORIGIN = "https://jobpilot-demo.pages.dev"
 # far inside the free allocation.
 IP_DAILY_LIMIT = "3"
 GLOBAL_DAILY_LIMIT = "200"
-MODEL = "@cf/meta/llama-3.1-8b-instruct"
+MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8"

@@ -65,6 +65,7 @@ export default function TailorPage() {
   const [result, setResult] = useState<TailorResult | null>(null);
   const [isSample, setIsSample] = useState(false);
   const [capped, setCapped] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
   const tsRef = useRef<HTMLDivElement>(null);
   const tokenRef = useRef("");
   const widgetId = useRef<string | undefined>(undefined);
@@ -76,7 +77,9 @@ export default function TailorPage() {
         widgetId.current = window.turnstile.render(tsRef.current, {
           sitekey: SITE_KEY,
           theme: "dark",
-          callback: (token: string) => { tokenRef.current = token; },
+          callback: (token: string) => { tokenRef.current = token; setHasToken(true); },
+          "expired-callback": () => { tokenRef.current = ""; setHasToken(false); },
+          "error-callback": () => { tokenRef.current = ""; setHasToken(false); },
         });
         clearInterval(t);
       }
@@ -84,7 +87,8 @@ export default function TailorPage() {
     return () => clearInterval(t);
   }, []);
 
-  const ready = resume.trim().length >= 120 && jd.trim().length >= 120;
+  const filled = resume.trim().length >= 120 && jd.trim().length >= 120;
+  const ready = filled && (!LIVE || hasToken);
 
   async function run() {
     if (!ready || busy) return;
@@ -120,6 +124,10 @@ export default function TailorPage() {
         setIsSample(true);
         return;
       }
+      if (res.status === 403) {
+        setError("The bot check did not go through. Give the checkbox a second to turn green, then try again.");
+        return;
+      }
       if (!res.ok) throw new Error(`request failed (${res.status})`);
       const data = (await res.json()) as TailorResult;
       if (!Array.isArray(data.suggestions)) throw new Error("malformed response");
@@ -132,6 +140,7 @@ export default function TailorPage() {
       setBusy(false);
       if (LIVE && window.turnstile) window.turnstile.reset(widgetId.current);
       tokenRef.current = "";
+      setHasToken(false);
     }
   }
 
@@ -193,9 +202,14 @@ export default function TailorPage() {
         <button className="btn-amber px-5 py-2 text-xs" disabled={!ready || busy} onClick={run}>
           {busy ? (<><span className="blink mr-1">●</span>tailoring…</>) : "⚡ Tailor my bullets"}
         </button>
-        {!ready && (resume || jd) && (
+        {!filled && (resume || jd) && (
           <span className="text-[11px]" style={{ color: "var(--text-faint)" }}>
             paste at least a few lines on each side
+          </span>
+        )}
+        {filled && LIVE && !hasToken && (
+          <span className="text-[11px]" style={{ color: "var(--text-faint)" }}>
+            waiting for the bot check on the left…
           </span>
         )}
       </div>
