@@ -1,0 +1,7 @@
+node_modules/
+.next/
+out/
+pdf-src/out/
+*.log
+.env*
+.wrangler/

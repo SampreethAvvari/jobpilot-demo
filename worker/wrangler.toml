@@ -1,0 +1,29 @@
+# The demo's only live-AI endpoint. Free plan by design:
+#  - Workers AI free daily allocation (errors when exhausted, never bills)
+#  - Workers KV free tier for the rate-limit counters
+#  - Turnstile (free) keeps bots off the model
+#
+# Deploy:
+#   wrangler kv namespace create RATELIMIT        -> paste the id below
+#   wrangler secret put TURNSTILE_SECRET
+#   wrangler deploy
+
+name = "jobpilot-demo-tailor"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+
+[ai]
+binding = "AI"
+
+[[kv_namespaces]]
+binding = "RATELIMIT"
+id = "e36524d3d4f34ee7b5040c60d69f49b6"
+
+[vars]
+# The Pages origin allowed to call this worker (no trailing slash).
+ALLOWED_ORIGIN = "https://jobpilot-demo.pages.dev"
+# Per-visitor and whole-demo daily caps. Generous for a portfolio demo,
+# far inside the free allocation.
+IP_DAILY_LIMIT = "3"
+GLOBAL_DAILY_LIMIT = "200"
+MODEL = "@cf/meta/llama-3.1-8b-instruct"

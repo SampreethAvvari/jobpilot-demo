@@ -1,0 +1,26 @@
+{
+  "name": "jobpilot-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Public demo of JobPilot with fictional data. The real thing: https://github.com/SampreethAvvari/job-pilot",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build && node scripts/flatten-rsc.mjs",
+    "start": "npx serve out"
+  },
+  "dependencies": {
+    "driver.js": "^1.3.6",
+    "next": "16.2.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
