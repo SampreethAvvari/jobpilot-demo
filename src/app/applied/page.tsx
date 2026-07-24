@@ -2,7 +2,7 @@
 
 import { useDemo } from "@/lib/store";
 import { isApplied } from "@/lib/status-sets";
-import { JobsTable } from "@/components/jobs-table";
+import JobsView from "@/components/jobs-view";
 
 export default function AppliedPage() {
   const { jobs } = useDemo();
@@ -11,11 +11,11 @@ export default function AppliedPage() {
     <div>
       <div className="mb-4">
         <div className="eyebrow">in flight</div>
-        <h1 className="display mt-1 text-2xl font-extrabold tracking-tight">
-          Applied <span style={{ color: "var(--green)" }}>({count})</span>
+        <h1 className="font-display mt-1 text-2xl font-extrabold tracking-tight">
+          Applied <span style={{ color: "var(--blue)" }}>({count})</span>
         </h1>
       </div>
-      <JobsTable jobs={jobs} mode="applied" />
+      <JobsView mode="applied" />
     </div>
   );
 }
