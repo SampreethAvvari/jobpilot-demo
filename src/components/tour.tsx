@@ -238,33 +238,31 @@ export function TourLauncher() {
           style={{
             position: "fixed", inset: 0, zIndex: 9980, display: "flex",
             alignItems: "center", justifyContent: "center",
-            background: "rgba(5,7,9,0.82)", backdropFilter: "blur(3px)",
+            background: "rgba(29, 29, 31, 0.42)", backdropFilter: "blur(3px)",
           }}
         >
           <div
-            className="welcome-card"
+            className="welcome-card card"
             style={{
               width: "100%", maxWidth: 480, margin: 16, padding: 32,
-              background: "#11161c", borderRadius: 14,
-              border: "1px solid rgba(255,176,0,0.4)",
-              boxShadow: "0 24px 80px rgba(0,0,0,0.7)",
+              boxShadow: "var(--shadow-lg)",
             }}
           >
             <div className="display text-2xl font-extrabold tracking-tight">
               JOB<span style={{ color: "var(--amber)" }}>PILOT</span>
             </div>
-            <p className="mt-3 text-xs leading-6" style={{ color: "var(--text-dim)" }}>
+            <p className="mt-3 text-xs leading-6" style={{ color: "var(--ink-55)" }}>
               This is JobPilot, an open-source job-hunt autopilot: it finds jobs
               hourly, AI-scores them against you, tailors one-page resumes with
               receipts, drafts the outreach, and watches your inbox for replies.
             </p>
-            <p className="mt-2 text-xs leading-6" style={{ color: "var(--text-dim)" }}>
-              You are flying as <b style={{ color: "var(--text)" }}>Jane Doe</b>, a
+            <p className="mt-2 text-xs leading-6" style={{ color: "var(--ink-55)" }}>
+              You are flying as <b style={{ color: "var(--ink)" }}>Jane Doe</b>, a
               fictional pilot with fictional companies. Real product, canned data:
               click anything, break nothing, it resets on reload.
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
-              <button className="btn-amber px-5 py-2.5 text-xs" onClick={start}>
+              <button className="btn btn-primary px-5 py-2.5 text-xs" onClick={start}>
                 ▸ Take the tour (2 min)
               </button>
               <button className="btn-ghost px-5 py-2.5 text-xs" onClick={dismissWelcome}>

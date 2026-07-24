@@ -4,8 +4,7 @@
 // pre-built artifacts for. Honest beats fake: we say what the real console
 // would do, and point at the rows where the demo can actually show it.
 
-import { useEffect } from "react";
-import { createPortal } from "react-dom";
+import Modal from "@/components/ui/modal";
 
 const CONTENT = {
   tailor: {
@@ -29,42 +28,18 @@ export function DemoNote({
   kind: keyof typeof CONTENT;
   onClose: () => void;
 }) {
-  useEffect(() => {
-    const onEsc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onEsc);
-    return () => document.removeEventListener("keydown", onEsc);
-  }, [onClose]);
-
   const c = CONTENT[kind];
-  if (typeof document === "undefined") return null;
-  return createPortal(
-    <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 9995, display: "flex",
-        alignItems: "center", justifyContent: "center", background: "rgba(5,7,9,0.78)",
-      }}
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="rise"
-        style={{
-          width: "100%", maxWidth: 460, margin: 16, padding: 24,
-          background: "#11161c", borderRadius: 12,
-          border: "1px solid var(--line)", boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
-        }}
-      >
-        <div className="eyebrow">demo note</div>
-        <div className="display mt-2 text-lg font-bold">{c.title}</div>
-        <p className="mt-3 whitespace-pre-line text-xs leading-5"
-           style={{ color: "var(--text-dim)" }}>
-          {c.body}
-        </p>
-        <button className="btn-amber mt-5 px-4 py-2 text-xs" onClick={onClose}>
-          Got it
-        </button>
-      </div>
-    </div>,
-    document.body,
+  return (
+    <Modal open onClose={onClose} width={460}>
+      <div className="eyebrow">demo note</div>
+      <div className="display mt-2 text-lg font-bold">{c.title}</div>
+      <p className="mt-3 whitespace-pre-line text-xs leading-5"
+         style={{ color: "var(--ink-55)" }}>
+        {c.body}
+      </p>
+      <button className="btn btn-primary mt-5 px-4 py-2 text-xs" onClick={onClose}>
+        Got it
+      </button>
+    </Modal>
   );
 }

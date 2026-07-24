@@ -8,6 +8,7 @@
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Button from "@/components/ui/button";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_TAILOR_ENDPOINT ?? "";
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
@@ -76,7 +77,7 @@ export default function TailorPage() {
       if (window.turnstile && tsRef.current && widgetId.current === undefined) {
         widgetId.current = window.turnstile.render(tsRef.current, {
           sitekey: SITE_KEY,
-          theme: "dark",
+          theme: "light",
           callback: (token: string) => { tokenRef.current = token; setHasToken(true); },
           "expired-callback": () => { tokenRef.current = ""; setHasToken(false); },
           "error-callback": () => { tokenRef.current = ""; setHasToken(false); },
@@ -154,13 +155,13 @@ export default function TailorPage() {
         <h1 className="display mt-1 text-2xl font-extrabold tracking-tight">
           Tailor <span style={{ color: "var(--amber)" }}>your</span> resume
         </h1>
-        <p className="mt-1 text-xs leading-5" style={{ color: "var(--text-dim)" }}>
+        <p className="mt-1 text-xs leading-5" style={{ color: "var(--ink-55)" }}>
           Paste a few resume bullets and a job description. A small open-weight model
           on Cloudflare&apos;s free tier rewrites the bullets toward the posting under
           JobPilot&apos;s truth rule: rephrase and re-emphasize only, never invent
           employers, dates, or metrics. Nothing you paste is stored or logged.
         </p>
-        <p className="mt-1 text-[11px]" style={{ color: "var(--text-faint)" }}>
+        <p className="mt-1 text-[11px]" style={{ color: "var(--ink-35)" }}>
           Three runs per visitor per day; the full pipeline (one-page LaTeX PDFs, judge
           loop, cover letters) runs on your own infrastructure, see Run your own.
         </p>
@@ -171,13 +172,14 @@ export default function TailorPage() {
           <label className="eyebrow" htmlFor="resume-in">your resume bullets</label>
           <textarea
             id="resume-in"
-            className="panel min-h-52 px-3 py-2 text-xs leading-5"
+            className="input text-xs leading-5"
+            style={{ height: "auto", minHeight: "13rem", padding: "10px 12px", lineHeight: 1.6 }}
             placeholder={"Paste 3 to 8 bullets, e.g.\n• Worked on a recommendation model during my internship\n• Used Python and SQL for data tasks"}
             value={resume}
             maxLength={RESUME_CAP}
             onChange={(e) => setResume(e.target.value)}
           />
-          <span className="text-right text-[10px]" style={{ color: "var(--text-faint)" }}>
+          <span className="text-right text-[10px]" style={{ color: "var(--ink-35)" }}>
             {resume.length}/{RESUME_CAP}
           </span>
         </div>
@@ -185,13 +187,14 @@ export default function TailorPage() {
           <label className="eyebrow" htmlFor="jd-in">the job description</label>
           <textarea
             id="jd-in"
-            className="panel min-h-52 px-3 py-2 text-xs leading-5"
+            className="input text-xs leading-5"
+            style={{ height: "auto", minHeight: "13rem", padding: "10px 12px", lineHeight: 1.6 }}
             placeholder="Paste the posting text (responsibilities + requirements is enough)"
             value={jd}
             maxLength={JD_CAP}
             onChange={(e) => setJd(e.target.value)}
           />
-          <span className="text-right text-[10px]" style={{ color: "var(--text-faint)" }}>
+          <span className="text-right text-[10px]" style={{ color: "var(--ink-35)" }}>
             {jd.length}/{JD_CAP}
           </span>
         </div>
@@ -199,30 +202,30 @@ export default function TailorPage() {
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
         {LIVE && <div ref={tsRef} />}
-        <button className="btn-amber px-5 py-2 text-xs" disabled={!ready || busy} onClick={run}>
-          {busy ? (<><span className="blink mr-1">●</span>tailoring…</>) : "⚡ Tailor my bullets"}
-        </button>
+        <Button disabled={!ready} busy={busy} onClick={run}>
+          {busy ? "tailoring…" : "⚡ Tailor my bullets"}
+        </Button>
         {!filled && (resume || jd) && (
-          <span className="text-[11px]" style={{ color: "var(--text-faint)" }}>
+          <span className="text-[11px]" style={{ color: "var(--ink-35)" }}>
             paste at least a few lines on each side
           </span>
         )}
         {filled && LIVE && !hasToken && (
-          <span className="text-[11px]" style={{ color: "var(--text-faint)" }}>
+          <span className="text-[11px]" style={{ color: "var(--ink-35)" }}>
             waiting for the bot check on the left…
           </span>
         )}
       </div>
 
       {capped && (
-        <div className="panel mt-4 px-4 py-3 text-xs" style={{ color: "var(--amber)" }}>
+        <div className="card mt-4 px-4 py-3 text-xs" style={{ color: "var(--amber)" }}>
           The demo hit today&apos;s free limit (it runs entirely on free tiers by design).
           Come back tomorrow, or run the real thing on your own keys below. Meanwhile,
           here is a sample of the output.
         </div>
       )}
       {error && (
-        <div className="panel mt-4 px-4 py-3 text-xs" style={{ color: "var(--red)" }}>
+        <div className="card mt-4 px-4 py-3 text-xs" style={{ color: "var(--rose)" }}>
           {error}
         </div>
       )}
@@ -235,44 +238,44 @@ export default function TailorPage() {
             </div>
           )}
           {result.suggestions.map((s, i) => (
-            <div key={i} className="panel p-4">
+            <div key={i} className="card p-4">
               <div className="eyebrow">bullet {i + 1} · targets: {s.targets}</div>
-              <p className="mt-2 text-xs leading-5" style={{ color: "var(--text-faint)" }}>
+              <p className="mt-2 text-xs leading-5" style={{ color: "var(--ink-35)" }}>
                 <s>{s.before}</s>
               </p>
-              <p className="mt-1.5 text-xs leading-5" style={{ color: "var(--green)" }}>
+              <p className="mt-1.5 text-xs leading-5" style={{ color: "var(--emerald)" }}>
                 {s.after}
               </p>
             </div>
           ))}
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="panel p-4">
-              <div className="eyebrow" style={{ color: "var(--green)" }}>now covered</div>
-              <ul className="mt-2 flex flex-col gap-1 text-xs" style={{ color: "var(--text-dim)" }}>
+            <div className="card p-4">
+              <div className="eyebrow" style={{ color: "var(--emerald)" }}>now covered</div>
+              <ul className="mt-2 flex flex-col gap-1 text-xs" style={{ color: "var(--ink-55)" }}>
                 {result.covered.map((k) => <li key={k}>✓ {k}</li>)}
               </ul>
             </div>
-            <div className="panel p-4">
-              <div className="eyebrow" style={{ color: "var(--red)" }}>cannot honestly be added</div>
-              <ul className="mt-2 flex flex-col gap-1 text-xs" style={{ color: "var(--text-dim)" }}>
+            <div className="card p-4">
+              <div className="eyebrow" style={{ color: "var(--rose)" }}>cannot honestly be added</div>
+              <ul className="mt-2 flex flex-col gap-1 text-xs" style={{ color: "var(--ink-55)" }}>
                 {result.not_addable.map((k) => <li key={k}>✕ {k}</li>)}
               </ul>
-              <p className="mt-2 text-[10px]" style={{ color: "var(--text-faint)" }}>
+              <p className="mt-2 text-[10px]" style={{ color: "var(--ink-35)" }}>
                 the same refusal the real tailor makes: missing experience stays missing
               </p>
             </div>
           </div>
 
-          <div className="panel p-5" style={{ borderColor: "rgba(255,176,0,0.3)" }}>
+          <div className="card p-5" style={{ borderColor: "var(--amber-soft)" }}>
             <div className="eyebrow" style={{ color: "var(--amber)" }}>want the whole pipeline?</div>
-            <p className="mt-2 text-xs leading-5" style={{ color: "var(--text-dim)" }}>
+            <p className="mt-2 text-xs leading-5" style={{ color: "var(--ink-55)" }}>
               The full system does this for every matching job automatically, as a
               one-page ATS-checked LaTeX PDF with a cover letter and a transparency
               report, plus the job feed, the watchlist, outreach drafts, and inbox
               alerts you toured. It runs on your own Google Cloud billing for roughly
               $0 to $10 a month.
             </p>
-            <Link href="/run-your-own" className="btn-amber mt-3 inline-block px-4 py-2 text-xs">
+            <Link href="/run-your-own" className="btn btn-primary mt-3 inline-block px-4 py-2 text-xs">
               Run your own →
             </Link>
           </div>
