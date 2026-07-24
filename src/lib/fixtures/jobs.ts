@@ -342,10 +342,17 @@ export function filler(now: number): Job[] {
       ? WATCHED[Math.floor(rand() * WATCHED.length)]
       : AGGREGATED[Math.floor(rand() * AGGREGATED.length)];
     const variant = variants[Math.floor(rand() * variants.length)];
-    const fit = rand() < 0.18
-      ? Math.floor(42 + rand() * 26) // sub-70 noise, hidden by the default filter
-      : Math.floor(70 + rand() * 23);
-    const postedH = 2 + Math.floor(rand() * 640); // up to ~26 days back
+    // Biased high: the console's default fit floor is 75, so most of the feed
+    // should already clear it. The remaining slice sits below 75 (some of it
+    // just under, some clearly weak) so lowering the fit filter still shows
+    // real movement instead of an empty gap.
+    const fit = rand() < 0.15
+      ? Math.floor(45 + rand() * 30) // 45-74, hidden by the default 75 floor
+      : Math.floor(75 + rand() * 22); // 75-96, the abundant majority
+    // Biased young: squaring the draw skews most postings inside the 14-day
+    // default window while keeping a long tail out past a month for realism
+    // and for the posted-date filter to have something to prove.
+    const postedH = 2 + Math.floor(rand() * rand() * 640);
     const foundH = Math.max(1, postedH - 2 - Math.floor(rand() * 8));
     const closed = rand();
     const status = closed < 0.06 ? "Dismissed" : closed < 0.12 ? "Rejected" : "New";
