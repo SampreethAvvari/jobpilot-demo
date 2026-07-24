@@ -9,8 +9,8 @@ import { Suspense } from "react";
 
 import { useDemo, useMounted } from "@/lib/store";
 import { isRemaining, jobsForCompany, norm } from "@/lib/company-match";
-import { JobsTable } from "@/components/jobs-table";
-import { TableSkeleton } from "@/components/skeleton";
+import JobsView from "@/components/jobs-view";
+import EmptyState from "@/components/ui/empty-state";
 
 function CompanyView() {
   const mounted = useMounted();
@@ -18,7 +18,7 @@ function CompanyView() {
   const company = params.get("c") ?? "";
   const { companies, jobs } = useDemo();
 
-  if (!mounted) return <TableSkeleton rows={6} />;
+  if (!mounted) return <EmptyState title="Loading" hint="Reading the watchlist." />;
 
   const watch = companies.find((c) => norm(c.company) === norm(company));
   const companyJobs = watch
@@ -28,23 +28,29 @@ function CompanyView() {
   return (
     <div className="rise">
       <div className="mb-4">
-        <Link href="/companies" className="text-xs hover:underline"
-              style={{ color: "var(--text-dim)" }}>
+        <Link
+          href="/companies"
+          className="text-[13px] hover:underline"
+          style={{ color: "var(--ink-55)" }}
+        >
           ← all companies
         </Link>
         <div className="mt-2 flex flex-wrap items-baseline gap-3">
-          <h1 className="display text-2xl font-extrabold tracking-tight">
+          <h1
+            className="text-2xl font-extrabold tracking-tight"
+            style={{ fontFamily: "var(--font-archivo)", color: "var(--ink)" }}
+          >
             {watch?.company ?? company ?? "Company"}
           </h1>
           {watch && (
-            <span className="text-xs" style={{ color: "var(--text-dim)" }}>
+            <span className="text-[13px]" style={{ color: "var(--ink-55)" }}>
               {watch.ats || "unresolved"}
               {watch.status && <> · {watch.status}</>}
               {watch.lastChecked && <> · checked {watch.lastChecked}</>}
             </span>
           )}
         </div>
-        <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
+        <p className="mt-1 text-[13px]" style={{ color: "var(--ink-55)" }}>
           {companyJobs.filter(isRemaining).length} left to apply ·{" "}
           {companyJobs.length} tracked in total. Matching the target roles,
           scored, filtered for seniority and sponsorship, with tailoring and
@@ -52,14 +58,14 @@ function CompanyView() {
         </p>
       </div>
 
-      <JobsTable jobs={companyJobs} mode="open" defaultStatus="New" defaultSort="posted" />
+      <JobsView mode="open" defaultStatus="New" jobs={companyJobs} />
     </div>
   );
 }
 
 export default function CompanyPage() {
   return (
-    <Suspense fallback={<TableSkeleton rows={6} />}>
+    <Suspense fallback={<EmptyState title="Loading" hint="Reading the watchlist." />}>
       <CompanyView />
     </Suspense>
   );

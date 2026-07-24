@@ -12,7 +12,6 @@ import dynamic from "next/dynamic";
 
 import JobCard from "./job-card";
 import EmptyState from "./ui/empty-state";
-import Skeleton from "./ui/skeleton";
 import Modal from "./ui/modal";
 import Button from "./ui/button";
 import { Segmented } from "./ui/filter-bar";
@@ -76,8 +75,10 @@ const SORT_OPTIONS = [
 ];
 
 /** Recency window by store time (not Date.now), so the prerender and the first
- * client paint agree before StoreReseed swaps the seed to visit time. */
-function withinRecency(j: Job, hours: number, now: number): boolean {
+ * client paint agree before StoreReseed swaps the seed to visit time. Exported
+ * so the dashboard's Fresh matches rail (fresh-matches.tsx) applies the exact
+ * same 72h gate as this view's own posted-within filter. */
+export function withinRecency(j: Job, hours: number, now: number): boolean {
   const ts = effectiveRecency(j);
   return ts !== 0 && now - ts <= hours * 3600_000;
 }
@@ -89,43 +90,16 @@ function draftForJob(job: Job): DraftEmail | null {
   return OUTREACH_DRAFTS[key] ?? null;
 }
 
-function SkeletonCard() {
-  return (
-    <div className="card flex flex-col gap-3 p-5">
-      <div className="flex items-start gap-3">
-        <Skeleton className="h-11 w-11 rounded-full" />
-        <div className="flex-1">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="mt-2 h-4 w-4/5" />
-          <Skeleton className="mt-2 h-3 w-3/5" />
-        </div>
-      </div>
-      <Skeleton className="h-3 w-full" />
-      <Skeleton className="h-3 w-11/12" />
-      <div className="mt-2 flex gap-2 border-t pt-3" style={{ borderColor: "var(--line)" }}>
-        <Skeleton className="h-7 w-20" />
-        <Skeleton className="h-7 w-16" />
-      </div>
-    </div>
-  );
-}
-
-export default function JobsView({ mode, defaultStatus, jobs: jobsProp }: JobsViewProps) {
-  const { jobs: storeJobs, now } = useDemo();
-  const jobs = jobsProp ?? storeJobs;
+/**
+ * The interaction handlers (dismiss / apply / tailor / draft / ask / status)
+ * shared by every JobCard grid on the demo console: the full Jobs registry
+ * (JobsView below) and the dashboard's Fresh matches rail (fresh-matches.tsx).
+ * Pulled out into one hook so the two call sites never drift: one set of
+ * store mutations, one apply/tailor/draft flow, one confirm dialog.
+ */
+export function useJobActions() {
   const toast = useToast();
 
-  const [q, setQ] = useState("");
-  const [status, setStatus] = useState(defaultStatus ?? (mode === "open" ? "New" : "all"));
-  const [source, setSource] = useState("all");
-  const [role, setRole] = useState("all");
-  const [resume, setResume] = useState("all");
-  const [size, setSize] = useState("all");
-  const [minFit, setMinFit] = useState(mode === "open" ? MIN_FIT : 0);
-  const [postedWithin, setPostedWithin] = useState(mode === "open" ? 336 : 0);
-  const [sortBy, setSortBy] = useState<SortKey>("recent");
-
-  // Interaction state (mirrors the old jobs-table).
   const [posting, setPosting] = useState<Job | null>(null);
   const [applyFlow, setApplyFlow] = useState<Job | null>(null);
   const [confirmJob, setConfirmJob] = useState<Job | null>(null);
@@ -135,13 +109,33 @@ export default function JobsView({ mode, defaultStatus, jobs: jobsProp }: JobsVi
   const [tailoring, setTailoring] = useState<Set<number>>(new Set());
   const [drafting, setDrafting] = useState<Set<number>>(new Set());
 
-  const sources = useMemo(
-    () => Array.from(new Set(jobs.map((j) => j.source))).filter(Boolean).sort(),
-    [jobs],
-  );
+  function dismiss(job: Job) {
+    const prev = job.status;
+    updateJob(job.row, { status: "Dismissed", notes: "dismissed: not relevant" });
+    toast({
+      message: `Dismissed ${job.company}. It will not come back.`,
+      actionLabel: "Undo",
+      onAction: () => updateJob(job.row, { status: prev, notes: "" }),
+    });
+  }
 
-  const statusOptions =
-    mode === "open" ? ["all", ...STATUSES] : ["all", ...STATUSES.filter(isApplied), "Rejected"];
+  function markApplied(job: Job) {
+    const d = job.appliedDate || todayStr();
+    updateJob(job.row, { status: "Applied", appliedDate: d });
+  }
+
+  function confirmApplied(job: Job) {
+    markApplied(job);
+    setConfirmJob(null);
+  }
+
+  function setStatusManual(job: Job, v: string) {
+    const stampDate = v === "Applied" && !job.appliedDate;
+    updateJob(job.row, {
+      status: v,
+      appliedDate: stampDate ? todayStr() : job.appliedDate,
+    });
+  }
 
   function analyze(job: Job) {
     setTailoring((s) => new Set(s).add(job.row));
@@ -181,6 +175,145 @@ export default function JobsView({ mode, defaultStatus, jobs: jobsProp }: JobsVi
     }
   }
 
+  function openDraft(job: Job) {
+    const d = draftForJob(job);
+    if (d) setDraftOpen(d);
+  }
+
+  return {
+    tailoring,
+    drafting,
+    posting,
+    setPosting,
+    applyFlow,
+    setApplyFlow,
+    confirmJob,
+    setConfirmJob,
+    chatJob,
+    setChatJob,
+    draftOpen,
+    setDraftOpen,
+    note,
+    setNote,
+    dismiss,
+    confirmApplied,
+    setStatusManual,
+    analyze,
+    draftOutreach,
+    openDraft,
+  };
+}
+
+export type JobActions = ReturnType<typeof useJobActions>;
+
+/** Every modal/drawer a JobCard grid can open (posting view, apply flow +
+ * confirm dialog, chat drawer, draft modal, tailor/draft explainer), in one
+ * component so JobsView and the dashboard's Fresh matches rail render
+ * identical flows off the same `useJobActions` state. */
+export function JobActionModals(actions: JobActions) {
+  const {
+    posting,
+    setPosting,
+    applyFlow,
+    setApplyFlow,
+    confirmJob,
+    setConfirmJob,
+    confirmApplied,
+    chatJob,
+    setChatJob,
+    draftOpen,
+    setDraftOpen,
+    note,
+    setNote,
+  } = actions;
+
+  return (
+    <>
+      {/* Read-only posting view (opened from a title or an Applied row's open). */}
+      {posting && <PostingModal job={posting} onClose={() => setPosting(null)} />}
+
+      {/* Apply flow: the fictional posting, whose Apply hands back the confirm. */}
+      {applyFlow && (
+        <PostingModal
+          job={applyFlow}
+          onClose={() => setApplyFlow(null)}
+          onApplied={() => setConfirmJob(applyFlow)}
+        />
+      )}
+
+      <Modal open={confirmJob !== null} onClose={() => setConfirmJob(null)} width={420}>
+        {confirmJob && (
+          <div data-tour="confirm-dialog">
+            <p className="eyebrow">confirm application</p>
+            <h2
+              className="mt-2 font-semibold"
+              style={{ fontFamily: "var(--font-archivo)", fontSize: 20, color: "var(--ink)" }}
+            >
+              Did you apply to {confirmJob.company}?
+            </h2>
+            <p className="mt-1 text-[13px]" style={{ color: "var(--ink-55)" }}>
+              {[confirmJob.title, confirmJob.location].filter(Boolean).join(" · ")}
+            </p>
+            <div className="mt-5 flex gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                autoFocus
+                onClick={() => confirmApplied(confirmJob)}
+              >
+                Yes, applied
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setConfirmJob(null)}>
+                Not yet
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {chatJob && <AssistantDrawer key={chatJob.id} job={chatJob} onClose={() => setChatJob(null)} />}
+      {draftOpen && <DraftModal draft={draftOpen} onClose={() => setDraftOpen(null)} />}
+      {note && <DemoNote kind={note} onClose={() => setNote(null)} />}
+    </>
+  );
+}
+
+export default function JobsView({ mode, defaultStatus, jobs: jobsProp }: JobsViewProps) {
+  const { jobs: storeJobs, now } = useDemo();
+  const jobs = jobsProp ?? storeJobs;
+
+  const actions = useJobActions();
+  const {
+    tailoring,
+    drafting,
+    setPosting,
+    setApplyFlow,
+    setChatJob,
+    dismiss,
+    setStatusManual,
+    analyze,
+    draftOutreach,
+    openDraft,
+  } = actions;
+
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState(defaultStatus ?? (mode === "open" ? "New" : "all"));
+  const [source, setSource] = useState("all");
+  const [role, setRole] = useState("all");
+  const [resume, setResume] = useState("all");
+  const [size, setSize] = useState("all");
+  const [minFit, setMinFit] = useState(mode === "open" ? MIN_FIT : 0);
+  const [postedWithin, setPostedWithin] = useState(mode === "open" ? 336 : 0);
+  const [sortBy, setSortBy] = useState<SortKey>("recent");
+
+  const sources = useMemo(
+    () => Array.from(new Set(jobs.map((j) => j.source))).filter(Boolean).sort(),
+    [jobs],
+  );
+
+  const statusOptions =
+    mode === "open" ? ["all", ...STATUSES] : ["all", ...STATUSES.filter(isApplied), "Rejected"];
+
   // Tour hooks: the guided tour drives the drawer and the tailor flow through
   // window events so every step is deterministic. Carried over verbatim from
   // the old jobs-table (demo:open-chat / demo:close-chat / demo:tailor).
@@ -206,34 +339,6 @@ export default function JobsView({ mode, defaultStatus, jobs: jobsProp }: JobsVi
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs]);
-
-  function dismiss(job: Job) {
-    const prev = job.status;
-    updateJob(job.row, { status: "Dismissed", notes: "dismissed: not relevant" });
-    toast({
-      message: `Dismissed ${job.company}. It will not come back.`,
-      actionLabel: "Undo",
-      onAction: () => updateJob(job.row, { status: prev, notes: "" }),
-    });
-  }
-
-  function markApplied(job: Job) {
-    const d = job.appliedDate || todayStr();
-    updateJob(job.row, { status: "Applied", appliedDate: d });
-  }
-
-  function setStatusManual(job: Job, v: string) {
-    const stampDate = v === "Applied" && !job.appliedDate;
-    updateJob(job.row, {
-      status: v,
-      appliedDate: stampDate ? todayStr() : job.appliedDate,
-    });
-  }
-
-  function openDraft(job: Job) {
-    const d = draftForJob(job);
-    if (d) setDraftOpen(d);
-  }
 
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -427,54 +532,7 @@ export default function JobsView({ mode, defaultStatus, jobs: jobsProp }: JobsVi
         )}
       </div>
 
-      {/* Read-only posting view (opened from a title or an Applied row's open). */}
-      {posting && <PostingModal job={posting} onClose={() => setPosting(null)} />}
-
-      {/* Apply flow: the fictional posting, whose Apply hands back the confirm. */}
-      {applyFlow && (
-        <PostingModal
-          job={applyFlow}
-          onClose={() => setApplyFlow(null)}
-          onApplied={() => setConfirmJob(applyFlow)}
-        />
-      )}
-
-      <Modal open={confirmJob !== null} onClose={() => setConfirmJob(null)} width={420}>
-        {confirmJob && (
-          <div data-tour="confirm-dialog">
-            <p className="eyebrow">confirm application</p>
-            <h2
-              className="mt-2 font-semibold"
-              style={{ fontFamily: "var(--font-archivo)", fontSize: 20, color: "var(--ink)" }}
-            >
-              Did you apply to {confirmJob.company}?
-            </h2>
-            <p className="mt-1 text-[13px]" style={{ color: "var(--ink-55)" }}>
-              {[confirmJob.title, confirmJob.location].filter(Boolean).join(" · ")}
-            </p>
-            <div className="mt-5 flex gap-2">
-              <Button
-                variant="primary"
-                size="sm"
-                autoFocus
-                onClick={() => {
-                  markApplied(confirmJob);
-                  setConfirmJob(null);
-                }}
-              >
-                Yes, applied
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setConfirmJob(null)}>
-                Not yet
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {chatJob && <AssistantDrawer key={chatJob.id} job={chatJob} onClose={() => setChatJob(null)} />}
-      {draftOpen && <DraftModal draft={draftOpen} onClose={() => setDraftOpen(null)} />}
-      {note && <DemoNote kind={note} onClose={() => setNote(null)} />}
+      <JobActionModals {...actions} />
     </div>
   );
 }
