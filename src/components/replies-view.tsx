@@ -102,7 +102,7 @@ function ReplyCard({
         </label>
         <select
           id={`reply-class-${job.row}`}
-          className="input btn-sm"
+          className="input"
           style={{ color: classColor(job.replyClass) }}
           value={CLASS_OPTIONS.some((o) => o.value === job.replyClass) ? job.replyClass : ""}
           onChange={(e) => updateJob(job.row, correction(job, e.target.value))}

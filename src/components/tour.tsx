@@ -32,7 +32,7 @@ const STEPS: Step[] = [
   {
     path: "/jobs/", el: "fit-cell",
     title: "AI fit scores",
-    body: "Gemini scores each job 0 to 100 against the pilot's profile, with a one-line why under the title and a sponsorship read. Under 70 is hidden by default; unknown is not treated as bad.",
+    body: "Gemini scores each job 0 to 100 against the pilot's profile, with a one-line why under the title and a sponsorship read. Under 75 is hidden by default; unknown is not treated as bad.",
   },
   {
     path: "/jobs/", el: "filters",
@@ -85,7 +85,7 @@ const STEPS: Step[] = [
   {
     path: "/companies/", el: "companies-table",
     title: "Board health at a glance",
-    body: "Jobs counts what is left for you to act on. Newest job shows how fresh each company's best opening is, green when under a day. Broken boards show their error instead of failing silently.",
+    body: "Left to apply counts what is still open for you to act on. Newest job shows how fresh each company's best opening is, green when under a day. Broken boards show their error instead of failing silently.",
   },
   {
     path: "/outreach/", el: "outreach-form",

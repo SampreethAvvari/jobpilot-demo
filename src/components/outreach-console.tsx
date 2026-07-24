@@ -161,24 +161,24 @@ function OutreachCard({ o, onOpenDraft }: { o: Outreach; onOpenDraft: (o: Outrea
         style={{ borderColor: "var(--line)" }}
       >
         {o.draft ? (
-          <button type="button" onClick={() => onOpenDraft(o)} className="btn-ghost btn-sm">
+          <button type="button" onClick={() => onOpenDraft(o)} className="btn btn-sm btn-ghost">
             Draft ↗
           </button>
         ) : (
-          <span className="btn-ghost btn-sm" style={{ color: "var(--ink-35)" }}>
+          <span className="btn btn-sm btn-ghost" style={{ color: "var(--ink-35)" }}>
             Draft ·
           </span>
         )}
 
         <span
-          className="btn-ghost btn-sm"
+          className="btn btn-sm btn-ghost"
           style={{ color: o.coverLetter === "yes" ? "var(--emerald)" : "var(--ink-35)" }}
         >
           {o.coverLetter === "yes" ? "Cover ✓" : "Cover ·"}
         </span>
 
         <span
-          className="btn-ghost btn-sm"
+          className="btn btn-sm btn-ghost"
           title={o.emailsFound || undefined}
           style={{ color: o.emailsFound ? "var(--blue)" : "var(--ink-35)" }}
         >
@@ -186,7 +186,7 @@ function OutreachCard({ o, onOpenDraft }: { o: Outreach; onOpenDraft: (o: Outrea
         </span>
 
         <details className="inline-block">
-          <summary className="btn-ghost btn-sm inline-flex cursor-pointer list-none select-none">
+          <summary className="btn btn-sm btn-ghost inline-flex cursor-pointer list-none select-none">
             Find the person
           </summary>
           <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1 pl-1">
