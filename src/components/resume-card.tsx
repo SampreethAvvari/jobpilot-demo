@@ -5,9 +5,9 @@
 // judge loop.
 
 import { useState } from "react";
-import { createPortal } from "react-dom";
 
 import type { MasterReport } from "@/lib/fixtures/reports";
+import Modal from "@/components/ui/modal";
 
 export type ResumeCardData = {
   variant: string;
@@ -17,7 +17,7 @@ export type ResumeCardData = {
 };
 
 function scoreColor(score: number) {
-  return score >= 90 ? "var(--green)" : score >= 75 ? "var(--amber)" : "var(--red)";
+  return score >= 90 ? "var(--emerald)" : score >= 75 ? "var(--amber)" : "var(--rose)";
 }
 
 export function ResumeCard({ data, report }: { data: ResumeCardData; report: MasterReport | null }) {
@@ -26,140 +26,150 @@ export function ResumeCard({ data, report }: { data: ResumeCardData; report: Mas
   const r = report?.report;
 
   return (
-    <div className="panel p-5" data-tour={data.variant === "FDE" ? "resume-card" : undefined}>
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="display text-3xl font-extrabold" style={{ color: "var(--amber)" }}>
-            {data.variant}
-          </div>
-          <div className="mt-1 font-semibold">{data.title}</div>
-          <div className="mt-1 text-[11px]" style={{ color: "var(--text-faint)" }}>
+    <div className="card p-6" data-tour={data.variant === "FDE" ? "resume-card" : undefined}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="eyebrow">{data.variant} master</p>
+          <h2
+            className="mt-1 truncate font-extrabold"
+            style={{ fontFamily: "var(--font-archivo)", fontSize: 22, color: "var(--ink)" }}
+          >
+            {data.title}
+          </h2>
+          <p className="mt-1 text-[13px]" style={{ color: "var(--ink-55)" }}>
             {data.blurb}
-          </div>
+          </p>
         </div>
         {report && (
-          <button onClick={() => setOpen(true)} className="text-right"
-                  title="Open PDF + full ATS report">
-            <div className="display text-2xl font-extrabold"
-                 style={{ color: scoreColor(report.score) }}>
+          <button
+            onClick={() => setOpen(true)}
+            className="shrink-0 text-right"
+            aria-label={`ATS score ${report.score} out of 100. Open the full report.`}
+            title="Open PDF + full ATS report"
+          >
+            <div
+              className="font-extrabold"
+              style={{ fontFamily: "var(--font-archivo)", fontSize: 30, color: scoreColor(report.score) }}
+            >
               {report.score}
             </div>
-            <div className="eyebrow">ats report ↗</div>
+            <div className="eyebrow hover:underline">ats report ↗</div>
           </button>
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <a className="btn-amber px-3 py-1.5 text-[11px]" href={data.pdf}
-           target="_blank" rel="noopener">
+      <div className="mt-5 flex flex-wrap gap-2 border-t pt-4" style={{ borderColor: "var(--line)" }}>
+        <a className="btn btn-sm btn-primary" href={data.pdf} target="_blank" rel="noopener">
           ⬇ Download PDF
         </a>
         {report && (
-          <button onClick={() => setOpen(true)} className="btn-ghost px-3 py-1.5 text-[11px]">
+          <button onClick={() => setOpen(true)} className="btn btn-sm btn-ghost">
             ATS report
           </button>
         )}
-        <button onClick={() => setNote(true)}
-                className="btn-ghost px-3 py-1.5 text-[11px]"
-                title="Up to 10 judge-guided rewrites; published only if the score improves">
+        <button
+          onClick={() => setNote(true)}
+          className="btn btn-sm btn-ghost"
+          title="Up to 10 judge-guided rewrites; published only if the score improves"
+        >
           ↻ Regenerate
         </button>
       </div>
 
-      {note && typeof document !== "undefined" && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex",
-                      alignItems: "center", justifyContent: "center",
-                      background: "rgba(5,7,9,0.78)" }}
-             onClick={() => setNote(false)}>
-          <div onClick={(e) => e.stopPropagation()} className="rise"
-               style={{ maxWidth: 440, margin: 16, padding: 24, background: "#11161c",
-                        borderRadius: 12, border: "1px solid var(--line)" }}>
-            <div className="eyebrow">demo note</div>
-            <div className="display mt-2 text-lg font-bold">Regenerate runs the judge loop</div>
-            <p className="mt-3 text-xs leading-5" style={{ color: "var(--text-dim)" }}>
-              In the real console this rewrites the master up to 10 times, scoring each
-              attempt with the calibrated ATS judge (impact 35, brevity 20, style 15,
-              sections 15, soft skills 15), and publishes only if the score improves.
-              The demo keeps its fixtures still instead of pretending to run a model.
-            </p>
-            <button className="btn-amber mt-5 px-4 py-2 text-xs" onClick={() => setNote(false)}>
-              Got it
-            </button>
-          </div>
-        </div>,
-        document.body,
-      )}
+      <Modal open={note} onClose={() => setNote(false)} width={440}>
+        <p className="eyebrow">demo note</p>
+        <h3
+          className="mt-2 text-lg font-bold"
+          style={{ fontFamily: "var(--font-archivo)", color: "var(--ink)" }}
+        >
+          Regenerate runs the judge loop
+        </h3>
+        <p className="mt-3 text-xs leading-5" style={{ color: "var(--ink-55)" }}>
+          In the real console this rewrites the master up to 10 times, scoring each
+          attempt with the calibrated ATS judge (impact 35, brevity 20, style 15,
+          sections 15, soft skills 15), and publishes only if the score improves.
+          The demo keeps its fixtures still instead of pretending to run a model.
+        </p>
+        <button className="btn btn-sm btn-primary mt-5" onClick={() => setNote(false)}>
+          Got it
+        </button>
+      </Modal>
 
-      {open && typeof document !== "undefined" && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex",
-                      alignItems: "center", justifyContent: "center",
-                      background: "rgba(5,7,9,0.85)" }}
-             onClick={() => setOpen(false)}>
-          <div onClick={(e) => e.stopPropagation()}
-               className="flex-col md:flex-row"
-               style={{ width: "94vw", maxWidth: 1300, height: "88vh",
-                        background: "#0e1318", borderRadius: 12, overflow: "hidden",
-                        border: "1px solid rgba(255,176,0,0.35)", display: "flex" }}>
-            <div className="h-1/2 md:h-full"
-                 style={{ flex: "1 1 55%", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
-              <iframe src={data.pdf}
-                      title={`${data.variant} resume`}
-                      style={{ width: "100%", height: "100%", border: 0,
-                               background: "#fff" }} />
+      <Modal open={open} onClose={() => setOpen(false)} width={1240}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="eyebrow">ats report · {data.variant}</p>
+            <div
+              className="mt-1 font-extrabold"
+              style={{ fontFamily: "var(--font-archivo)", fontSize: 34, color: scoreColor(report?.score ?? 0) }}
+            >
+              {report?.score}
+              <span className="text-base font-normal" style={{ color: "var(--ink-55)" }}>
+                /100
+              </span>
             </div>
-            <div className="h-1/2 md:h-full"
-                 style={{ flex: "1 1 45%", padding: 20, overflowY: "auto",
-                          color: "var(--text)" }}>
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="eyebrow">ats report · {data.variant}</div>
-                  <div className="display text-4xl font-extrabold"
-                       style={{ color: scoreColor(report?.score ?? 0) }}>
-                    {report?.score}<span className="text-base font-normal"
-                                         style={{ color: "var(--text-faint)" }}>/100</span>
+          </div>
+          <button onClick={() => setOpen(false)} className="btn btn-sm btn-ghost" aria-label="close">
+            ✕ close
+          </button>
+        </div>
+
+        <div
+          className="mt-4 flex flex-col overflow-hidden rounded-xl border md:flex-row"
+          style={{ borderColor: "var(--line)", height: "72vh" }}
+        >
+          <div
+            className="h-1/2 border-b md:h-full md:flex-1 md:border-b-0 md:border-r"
+            style={{ borderColor: "var(--line)" }}
+          >
+            <iframe
+              src={data.pdf}
+              title={`${data.variant} resume`}
+              style={{ width: "100%", height: "100%", border: 0, background: "#fff" }}
+            />
+          </div>
+          <div className="h-1/2 overflow-y-auto p-4 md:h-full md:w-[380px] md:shrink-0">
+            {r && (
+              <>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {Object.entries(r.breakdown).map(([k, v]) => (
+                    <div key={k} className="card px-3 py-2">
+                      <div className="eyebrow">{k.replace("_", " ")}</div>
+                      <div className="font-bold" style={{ color: "var(--ink)" }}>{v}</div>
+                    </div>
+                  ))}
+                  <div className="card px-3 py-2">
+                    <div className="eyebrow">keywords</div>
+                    <div className="font-bold" style={{ color: "var(--ink)" }}>
+                      {Math.round(r.keyword_coverage * 100)}%
+                    </div>
+                  </div>
+                  <div className="card px-3 py-2">
+                    <div className="eyebrow">pages / words / attempts</div>
+                    <div className="font-bold" style={{ color: "var(--ink)" }}>
+                      {r.pages} / {r.words} / {r.attempts}
+                    </div>
                   </div>
                 </div>
-                <button onClick={() => setOpen(false)}
-                        className="btn-ghost px-3 py-1 text-xs">✕ close</button>
-              </div>
-              {r && (
-                <>
-                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                    {Object.entries(r.breakdown).map(([k, v]) => (
-                      <div key={k} className="panel px-3 py-2">
-                        <div className="eyebrow">{k.replace("_", " ")}</div>
-                        <div className="font-bold">{v}</div>
-                      </div>
-                    ))}
-                    <div className="panel px-3 py-2">
-                      <div className="eyebrow">keywords</div>
-                      <div className="font-bold">{Math.round(r.keyword_coverage * 100)}%</div>
-                    </div>
-                    <div className="panel px-3 py-2">
-                      <div className="eyebrow">pages / words / attempts</div>
-                      <div className="font-bold">{r.pages} / {r.words} / {r.attempts}</div>
-                    </div>
+                <div className="eyebrow mt-5 mb-2">violations</div>
+                {r.issues.length ? (
+                  <ul className="list-disc space-y-1 pl-4 text-[11px]" style={{ color: "var(--ink-70)" }}>
+                    {r.issues.map((i, idx) => <li key={idx}>{i}</li>)}
+                  </ul>
+                ) : (
+                  <div className="text-xs" style={{ color: "var(--emerald)" }}>
+                    Clean pass. No violations under the current rubric.
                   </div>
-                  <div className="eyebrow mt-5 mb-2">violations</div>
-                  {r.issues.length ? (
-                    <ul className="list-disc space-y-1 pl-4 text-[11px]"
-                        style={{ color: "var(--text-dim)" }}>
-                      {r.issues.map((i, idx) => <li key={idx}>{i}</li>)}
-                    </ul>
-                  ) : (
-                    <div className="text-xs" style={{ color: "var(--green)" }}>
-                      Clean pass. No violations under the current rubric.
-                    </div>
-                  )}
-                  <div className="eyebrow mt-4">scored {report?.timestamp} · rubric: impact 35
-                    / brevity 20 / style 15 / sections 15 / soft-skills 15 (ResumeWorded replica)</div>
-                </>
-              )}
-            </div>
+                )}
+                <div className="eyebrow mt-4">
+                  scored {report?.timestamp} · rubric: impact 35 / brevity 20 / style 15 / sections 15
+                  {" "}/ soft skills 15 (ResumeWorded replica)
+                </div>
+              </>
+            )}
           </div>
-        </div>,
-        document.body,
-      )}
+        </div>
+      </Modal>
     </div>
   );
 }

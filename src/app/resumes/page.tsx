@@ -22,8 +22,8 @@ export default function ResumesPage() {
     <div className="rise">
       <div className="mb-5">
         <div className="eyebrow">armory</div>
-        <h1 className="display mt-1 text-2xl font-extrabold tracking-tight">Resumes</h1>
-        <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
+        <h1 className="font-display mt-1 text-2xl font-extrabold tracking-tight">Resumes</h1>
+        <p className="mt-1 text-xs" style={{ color: "var(--ink-55)" }}>
           One-page masters scored by the calibrated ATS judge (ResumeWorded-replica
           rubric). Click a score for the full report. Regenerate runs up to 10
           judge-guided rewrites and only publishes improvements.

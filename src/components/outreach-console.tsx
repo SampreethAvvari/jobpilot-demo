@@ -1,22 +1,26 @@
 "use client";
 
 // Cold outreach, demo edition. Searching a company plays the real run's
-// states for a few seconds, then lands a drafted row whose draft opens in
+// states for a few seconds, then lands a drafted card whose draft opens in
 // place. The real run scrapes for a published careers email and drops the
 // draft into Gmail; nothing is ever sent automatically, there or here.
 
 import { useState } from "react";
 
+import Badge from "@/components/ui/badge";
+import EmptyState from "@/components/ui/empty-state";
 import { findPeopleLinks } from "@/lib/people";
 import { RESUME_VARIANTS, type Outreach } from "@/lib/types";
-import { draftCompanyOutreach } from "@/lib/store";
+import { draftCompanyOutreach, useDemo } from "@/lib/store";
 import { OUTREACH_DRAFTS, type DraftEmail } from "@/lib/fixtures/outreach";
 import { DraftModal } from "@/components/draft-modal";
 
-function statusColor(status: string): string {
-  if (status === "Drafted") return "var(--green)";
-  if (status.toLowerCase().startsWith("fail")) return "var(--red)";
-  return "var(--amber)";
+/** Tone + blink for the status badge: "Drafted" is done, anything starting
+ * with "fail" failed, everything else is still in flight. */
+function outreachTone(status: string): { tone: "emerald" | "rose" | "amber"; blink: boolean } {
+  if (status === "Drafted") return { tone: "emerald", blink: false };
+  if (status.toLowerCase().startsWith("fail")) return { tone: "rose", blink: false };
+  return { tone: "amber", blink: true };
 }
 
 const GENERIC_DRAFT = (o: Outreach): DraftEmail => ({
@@ -33,7 +37,8 @@ janedoe.dev · linkedin.com/in/janedoe · github.com/janedoe`,
   attachments: [`Jane_Doe_${o.variant || "AIE"}.pdf`, `Cover_${o.company.replace(/\s+/g, "_")}.pdf`],
 });
 
-export function OutreachConsole({ rows }: { rows: Outreach[] }) {
+export function OutreachConsole() {
+  const { outreach: rows } = useDemo();
   const [company, setCompany] = useState("");
   const [variant, setVariant] = useState("");
   const [busy, setBusy] = useState(false);
@@ -54,20 +59,24 @@ export function OutreachConsole({ rows }: { rows: Outreach[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <form onSubmit={draft} className="panel flex flex-wrap items-center gap-2 p-3"
-            data-tour="outreach-form">
+    <div className="rise flex flex-col gap-4">
+      <form
+        onSubmit={draft}
+        className="card flex flex-wrap items-center gap-2 p-4"
+        data-tour="outreach-form"
+      >
         <input
-          className="panel px-2 py-1.5 text-xs"
+          className="input"
           style={{ minWidth: "16rem" }}
           placeholder="Company name (try any fictional one)"
           value={company}
           maxLength={80}
           onChange={(e) => setCompany(e.target.value)}
+          aria-label="company name"
         />
         <select
-          className="panel cell-select px-2 py-1.5 text-xs"
-          aria-label="Resume variant"
+          className="input"
+          aria-label="resume variant"
           value={variant}
           onChange={(e) => setVariant(e.target.value)}
         >
@@ -78,8 +87,11 @@ export function OutreachConsole({ rows }: { rows: Outreach[] }) {
             </option>
           ))}
         </select>
-        <button className="btn-amber px-4 py-1.5 text-xs" type="submit"
-                disabled={busy || !company.trim()}>
+        <button
+          type="submit"
+          className="btn btn-sm btn-primary"
+          disabled={busy || !company.trim()}
+        >
           {busy ? (
             <>
               <span className="blink mr-1">●</span>
@@ -89,79 +101,116 @@ export function OutreachConsole({ rows }: { rows: Outreach[] }) {
             "✉ Draft outreach"
           )}
         </button>
-        <span className="text-[11px]" style={{ color: "var(--text-faint)" }}>
-          the real run takes about a minute on Cloud Run; the demo replays it in four seconds
+        <span className="text-[11px]" style={{ color: "var(--ink-35)" }}>
+          the real run takes about a minute on Cloud Run; the demo replays it in under four seconds
         </span>
       </form>
 
-      <div className="panel overflow-x-auto" data-tour="outreach-table">
-        <table className="console-table">
-          <thead>
-            <tr>
-              <th>Company</th><th>Resume</th><th>Draft</th><th>Emails found</th>
-              <th>Find the person</th><th>Cover</th><th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((o) => (
-              <tr key={o.row}>
-                <td>
-                  <span className="font-semibold">{o.company}</span>
-                  {o.domain && (
-                    <div className="text-[10px]" style={{ color: "var(--text-faint)" }}>
-                      {o.domain}
-                    </div>
-                  )}
-                </td>
-                <td title={o.variantReason} style={{ color: "var(--text-dim)" }}>
-                  {o.variant || "·"}
-                </td>
-                <td>
-                  {o.draft ? (
-                    <button className="hover:underline" style={{ color: "var(--green)" }}
-                            onClick={() => openDraft(o)}>
-                      open draft ↗
-                    </button>
-                  ) : "·"}
-                </td>
-                <td className="max-w-64 text-[10px]" title={o.emailsFound}
-                    style={{ color: o.emailsFound ? "var(--text-dim)" : "var(--text-faint)" }}>
-                  {o.emailsFound
-                    ? o.emailsFound.split(";").slice(0, 3).map((p, i) => (
-                        <div key={i} className="truncate">{p.trim()}</div>
-                      ))
-                    : "none published · draft left unaddressed"}
-                </td>
-                <td className="max-w-72">
-                  <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-                    {findPeopleLinks(o.company).slice(0, 3).map((l) => (
-                      <span key={l.label} className="text-[10px]"
-                            title="In the real console these are live people-search links"
-                            style={{ color: "var(--text-dim)" }}>
-                        {l.label} ↗
-                      </span>
-                    ))}
-                  </div>
-                </td>
-                <td style={{ color: o.coverLetter === "yes" ? "var(--green)" : "var(--text-faint)" }}>
-                  {o.coverLetter === "yes" ? "✓" : "·"}
-                </td>
-                <td style={{ color: statusColor(o.status) }}>{o.status || "·"}</td>
-              </tr>
-            ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={7} className="py-10 text-center"
-                    style={{ color: "var(--text-faint)" }}>
-                  No drafts yet. Search a company above to create your first one.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {rows.length === 0 ? (
+        <EmptyState title="No outreach yet" hint="Search a company above to create your first one." />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-tour="outreach-table">
+          {rows.map((o) => (
+            <OutreachCard key={o.row} o={o} onOpenDraft={openDraft} />
+          ))}
+        </div>
+      )}
 
       {open && <DraftModal draft={open} onClose={() => setOpen(null)} />}
     </div>
+  );
+}
+
+function OutreachCard({ o, onOpenDraft }: { o: Outreach; onOpenDraft: (o: Outreach) => void }) {
+  const { tone, blink } = outreachTone(o.status);
+  const people = findPeopleLinks(o.company);
+
+  return (
+    <article className="card card-hover rise flex flex-col gap-3 p-5">
+      <header className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p
+            className="truncate font-semibold"
+            style={{ fontFamily: "var(--font-archivo)", fontSize: 16, color: "var(--ink)" }}
+            title={o.company}
+          >
+            {o.company}
+          </p>
+          {o.domain && (
+            <p className="mt-0.5 truncate text-[12px]" style={{ color: "var(--ink-55)" }}>
+              {o.domain}
+            </p>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Badge tone="neutral">{o.variant || "·"}</Badge>
+          <span className={blink ? "blink" : undefined}>
+            <Badge tone={tone}>{o.status || "·"}</Badge>
+          </span>
+        </div>
+      </header>
+
+      {o.variantReason && (
+        <p className="truncate text-[11px]" style={{ color: "var(--ink-35)" }} title={o.variantReason}>
+          {o.variantReason}
+        </p>
+      )}
+
+      <div
+        className="mt-auto flex flex-wrap items-center gap-1.5 border-t pt-3"
+        style={{ borderColor: "var(--line)" }}
+      >
+        {o.draft ? (
+          <button type="button" onClick={() => onOpenDraft(o)} className="btn-ghost btn-sm">
+            Draft ↗
+          </button>
+        ) : (
+          <span className="btn-ghost btn-sm" style={{ color: "var(--ink-35)" }}>
+            Draft ·
+          </span>
+        )}
+
+        <span
+          className="btn-ghost btn-sm"
+          style={{ color: o.coverLetter === "yes" ? "var(--emerald)" : "var(--ink-35)" }}
+        >
+          {o.coverLetter === "yes" ? "Cover ✓" : "Cover ·"}
+        </span>
+
+        <span
+          className="btn-ghost btn-sm"
+          title={o.emailsFound || undefined}
+          style={{ color: o.emailsFound ? "var(--blue)" : "var(--ink-35)" }}
+        >
+          {o.emailsFound ? "Emails ✓" : "Emails ·"}
+        </span>
+
+        <details className="inline-block">
+          <summary className="btn-ghost btn-sm inline-flex cursor-pointer list-none select-none">
+            Find the person
+          </summary>
+          <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1 pl-1">
+            {people.map((l) => (
+              <a
+                key={l.label}
+                href={l.url}
+                target="_blank"
+                rel="noopener"
+                className="text-[11px] hover:underline"
+                style={{ color: "var(--ink-55)" }}
+              >
+                {l.label} ↗
+              </a>
+            ))}
+          </div>
+        </details>
+      </div>
+
+      {o.emailsFound && (
+        <p className="truncate text-[11px]" style={{ color: "var(--ink-35)" }} title={o.emailsFound}>
+          found: {o.emailsFound}
+        </p>
+      )}
+    </article>
   );
 }

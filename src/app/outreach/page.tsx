@@ -1,17 +1,14 @@
 "use client";
 
-import { useDemo } from "@/lib/store";
 import { OutreachConsole } from "@/components/outreach-console";
 
 export default function OutreachPage() {
-  const { outreach } = useDemo();
-
   return (
     <div className="rise">
       <div className="mb-5">
         <div className="eyebrow">cold outreach</div>
-        <h1 className="display mt-1 text-2xl font-extrabold tracking-tight">Outreach</h1>
-        <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
+        <h1 className="font-display mt-1 text-2xl font-extrabold tracking-tight">Outreach</h1>
+        <p className="mt-1 text-xs" style={{ color: "var(--ink-55)" }}>
           Search a company. JobPilot picks the best-fit resume, writes a short,
           plain-English cold email, builds a tailored cover letter, and finds a
           <b> published</b> careers email, scraped from the company&apos;s own site,
@@ -21,7 +18,7 @@ export default function OutreachPage() {
         </p>
       </div>
 
-      <OutreachConsole rows={outreach} />
+      <OutreachConsole />
     </div>
   );
 }

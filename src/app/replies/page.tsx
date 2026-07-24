@@ -1,7 +1,7 @@
 "use client";
 
 import { useDemo } from "@/lib/store";
-import { RepliesTable } from "@/components/replies-table";
+import { RepliesView } from "@/components/replies-view";
 
 export default function RepliesPage() {
   const { jobs } = useDemo();
@@ -13,8 +13,8 @@ export default function RepliesPage() {
     <div className="rise">
       <div className="mb-5">
         <div className="eyebrow">comms</div>
-        <h1 className="display mt-1 text-2xl font-extrabold tracking-tight">Replies</h1>
-        <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
+        <h1 className="font-display mt-1 text-2xl font-extrabold tracking-tight">Replies</h1>
+        <p className="mt-1 text-xs" style={{ color: "var(--ink-55)" }}>
           The scanner reads the watched inboxes each run, matches recruiter emails to
           tracked applications, and moves status forward. A genuine next step sends an
           instant alert email; rejections quietly close their rows. Your manual edits
@@ -23,7 +23,7 @@ export default function RepliesPage() {
         </p>
       </div>
 
-      <RepliesTable jobs={replies} />
+      <RepliesView jobs={replies} />
     </div>
   );
 }
