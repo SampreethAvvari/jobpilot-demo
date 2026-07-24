@@ -237,9 +237,7 @@ h1, h2, h3 {
 }
 .welcome-card { animation: welcomeIn 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 
-/* dense-console tap targets still meet the 24px minimum */
-.console-table a,
-.console-table button,
+/* suggestion chips keep a comfortable tap target */
 .chip {
   min-height: 24px;
   display: inline-flex;
