@@ -34,13 +34,13 @@ export function MobileNav() {
       {open && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[70] flex" onClick={() => setOpen(false)}>
           <div
-            className="h-full w-64 overflow-y-auto pb-8 rise"
-            style={{ background: "var(--ink-2)", borderRight: "1px solid var(--line)" }}
+            className="card rise h-full w-64 overflow-y-auto pb-8"
+            style={{ borderRadius: 0, boxShadow: "var(--shadow-lg)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 pt-5 pb-6">
               <div className="display text-lg font-extrabold tracking-tight">
-                JOB<span style={{ color: "var(--amber)" }}>PILOT</span>
+                JOB<span style={{ color: "var(--blue)" }}>PILOT</span>
               </div>
               <button aria-label="Close menu" className="btn-ghost px-2 py-1 text-xs"
                       onClick={() => setOpen(false)}>
@@ -49,7 +49,7 @@ export function MobileNav() {
             </div>
             <Nav />
           </div>
-          <div className="flex-1" style={{ background: "rgba(5,7,9,0.6)" }} />
+          <div className="flex-1" style={{ background: "rgba(29, 29, 31, 0.32)" }} />
         </div>,
         document.body,
       )}

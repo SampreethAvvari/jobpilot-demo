@@ -2,21 +2,24 @@
 
 import { useState } from "react";
 
+import Button from "@/components/ui/button";
 import { runRefresh } from "@/lib/store";
 
 type State = "idle" | "running" | "done" | "quiet";
 
 /** The real button triggers a Cloud Run pipeline execution and polls it for
- * minutes. The demo compresses that into a six-second run that lands five
- * fresh fictional postings. */
+ * minutes. The demo compresses that into a six-second run that lands a
+ * handful of fresh fictional postings. */
 export function RefreshButton() {
   const [state, setState] = useState<State>("idle");
+  const [added, setAdded] = useState(0);
 
   function trigger() {
     if (state === "running") return;
     setState("running");
-    runRefresh((added) => {
-      setState(added > 0 ? "done" : "quiet");
+    runRefresh((n) => {
+      setAdded(n);
+      setState(n > 0 ? "done" : "quiet");
       setTimeout(() => setState("idle"), 6000);
     });
   }
@@ -24,17 +27,15 @@ export function RefreshButton() {
   const label = {
     idle: "⟳ Refresh jobs",
     running: "Fetching fresh jobs…",
-    done: "✓ Done, 5 fresh jobs in",
+    done: `✓ Done, ${added} fresh job${added === 1 ? "" : "s"} in`,
     quiet: "✓ Done, nothing new this run",
   }[state];
 
   return (
-    <button onClick={trigger} disabled={state === "running"}
+    <Button variant="ghost" size="sm" onClick={trigger} busy={state === "running"}
             data-tour="refresh"
-            className="btn-amber px-4 py-1.5 text-xs"
-            title="In the real console this triggers the Cloud Run pipeline (~3 to 6 minutes). The demo replays a run in six seconds.">
-      {state === "running" && <span className="blink mr-1">●</span>}
+            title="In the real console this triggers the Cloud Run pipeline (roughly 3 to 6 minutes). The demo replays a run in six seconds.">
       {label}
-    </button>
+    </Button>
   );
 }

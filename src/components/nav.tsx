@@ -37,13 +37,16 @@ export function Nav() {
           <span aria-hidden>{l.glyph}</span>
           {l.label}
           {l.href === "/applied" && (
-            <span className="ml-auto text-[11px]" style={{ color: "var(--green)" }}>
-              ({appliedCount})
+            <span
+              className="ml-auto rounded-full px-1.5 py-0.5 text-[11px] font-semibold leading-none"
+              style={{ background: "var(--blue-soft)", color: "var(--blue)" }}
+            >
+              {appliedCount}
             </span>
           )}
         </Link>
       ))}
-      <div className="mx-3 my-3 border-t" style={{ borderColor: "var(--line-soft)" }} />
+      <div className="mx-3 my-3 border-t" style={{ borderColor: "var(--line)" }} />
       <div className="eyebrow px-3 pb-1">only in the demo</div>
       {DEMO_LINKS.map((l) => (
         <Link key={l.href} href={l.href} data-tour={l.tour}

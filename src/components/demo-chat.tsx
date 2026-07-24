@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { Job } from "@/lib/types";
+import Button from "@/components/ui/button";
 import { ASSISTANT_CHIPS, chipsFor, FREE_TEXT_REPLY, type CannedTurn } from "@/lib/fixtures/chats";
 
 type Msg = { role: "user" | "model"; text: string; done: boolean };
@@ -82,45 +83,50 @@ export function DemoChat({ lockedJob }: { lockedJob?: Job }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="panel flex flex-wrap items-center gap-2 p-3 text-xs">
+      <div className="card flex flex-wrap items-center gap-2 p-3 text-xs">
         {lockedJob ? (
-          <span style={{ color: "var(--text-dim)" }}>
-            Job: <b style={{ color: "var(--text)" }}>{lockedJob.company}</b> · {lockedJob.title}
+          <span style={{ color: "var(--ink-55)" }}>
+            Job: <b style={{ color: "var(--ink)" }}>{lockedJob.company}</b> · {lockedJob.title}
           </span>
         ) : (
-          <span style={{ color: "var(--text-dim)" }}>
+          <span style={{ color: "var(--ink-55)" }}>
             Grounded in the pilot&apos;s resumes, GitHub, portfolio, and knowledge pack.
           </span>
         )}
         <span className="ml-auto flex items-center gap-2">
           <span className="recorded-tag">recorded demo · live Gemini in the real console</span>
           {messages.length > 0 && (
-            <button className="btn-ghost px-2 py-1 text-xs" onClick={clearChat}
+            <Button variant="ghost" size="sm" onClick={clearChat}
                     title="Start fresh; nothing is saved in the real console either">
               ⟳ clear
-            </button>
+            </Button>
           )}
         </span>
       </div>
 
-      <div className="panel flex min-h-[38vh] flex-col gap-3 p-4" data-tour="chat-messages">
+      <div className="card flex min-h-[38vh] flex-col gap-3 p-4" data-tour="chat-messages">
         {messages.length === 0 && (
-          <p className="text-xs" style={{ color: "var(--text-faint)" }}>
+          <p className="text-xs" style={{ color: "var(--ink-35)" }}>
             {lockedJob
               ? "Answers stay grounded in Jane's real background and this job's description: resume rewrites, cover letters, and application answers in STAR form. Pick a question below."
               : "Answers use Jane's background only, never invented facts. Pick a question below to see how the copilot writes."}
           </p>
         )}
         {messages.map((m, i) => (
-          <div key={i} className="text-sm" style={{
-            alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-            maxWidth: "88%",
-            whiteSpace: "pre-wrap",
-            background: m.role === "user" ? "rgba(255,255,255,0.06)" : "transparent",
-            borderLeft: m.role === "model" ? "2px solid var(--amber)" : "none",
-            padding: "6px 10px",
-            borderRadius: 8,
-          }}>
+          <div
+            key={i}
+            className={m.role === "model" ? "card text-sm" : "text-sm"}
+            style={{
+              alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+              maxWidth: "88%",
+              whiteSpace: "pre-wrap",
+              color: "var(--ink)",
+              background: m.role === "user" ? "var(--blue-soft)" : undefined,
+              borderLeft: m.role === "model" ? "2px solid var(--blue)" : undefined,
+              padding: "8px 12px",
+              borderRadius: m.role === "user" ? 12 : undefined,
+            }}
+          >
             <span className={m.role === "model" && !m.done ? "type-cursor" : undefined}>
               {m.text}
             </span>
@@ -140,9 +146,10 @@ export function DemoChat({ lockedJob }: { lockedJob?: Job }) {
         ))}
       </div>
 
-      <div className="panel flex items-end gap-2 p-3">
+      <div className="card flex items-end gap-2 p-3">
         <textarea
-          className="panel min-h-14 grow px-2 py-1.5 text-sm"
+          className="input grow text-sm"
+          style={{ height: "auto", minHeight: "3.5rem", padding: "8px 12px", lineHeight: 1.5 }}
           placeholder="Type anything; the demo will explain what the live copilot would do…"
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -150,10 +157,9 @@ export function DemoChat({ lockedJob }: { lockedJob?: Job }) {
             if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendFree(); }
           }}
         />
-        <button className="btn-amber px-4 py-2 text-xs" disabled={typing || !input.trim()}
-                onClick={sendFree}>
+        <Button disabled={typing || !input.trim()} onClick={sendFree}>
           Send
-        </button>
+        </Button>
       </div>
     </div>
   );
