@@ -6,3 +6,5 @@ pdf-src/out/
 .env*
 .wrangler/
 .dev.vars
+.port/
+*.tsbuildinfo
